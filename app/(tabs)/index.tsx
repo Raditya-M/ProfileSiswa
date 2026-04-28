@@ -1,98 +1,261 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import {
+  View, Text, ScrollView, StyleSheet,
+  Platform, TouchableOpacity, Image
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const ORANGE = '#E8581A';
+const DARK = '#2C3E50';
+
+const stats = [
+  { label: 'PORTOFOLIO', value: '12' },
+  { label: 'SERTIFIKASI', value: '3' },
+  { label: 'PRESTASI', value: '5' },
+  { label: 'RATA NILAI', value: '85' },
+];
+
+const menuItems = [
+  { label: 'PROFIL',      icon: 'person-outline',           route: '/profile' },
+  { label: 'NILAI',       icon: 'bar-chart-outline',        route: '/nilai' },
+  { label: 'PORTOFOLIO',  icon: 'folder-open-outline',      route: '/portofolio' },
+  { label: 'PRESTASI',    icon: 'trophy-outline',           route: '/prestasi' },
+  { label: 'SERTIFIKASI', icon: 'shield-checkmark-outline', route: '/sertifikat' },
+  { label: 'CIS',         icon: 'school-outline',           route: '/cis' },
+];
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <View style={styles.container}>
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Ionicons name="menu" size={24} color="white" />
+        <Text style={styles.headerTitle}>STUDENT PROFILE</Text>
+        <View style={styles.avatarSmall}>
+          <Ionicons name="person" size={16} color={DARK} />
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* Welcome Card */}
+        <View style={styles.welcomeCard}>
+          <View style={styles.avatarBox}>
+            <Ionicons name="person" size={48} color="white" />
+          </View>
+          <View style={styles.welcomeText}>
+            <Text style={styles.welcomeGreeting}>Selamat datang,</Text>
+            <Text style={styles.welcomeName}>Budi Santoso</Text>
+            <Text style={styles.welcomeClass}>XII - Teknik Mesin</Text>
+          </View>
+        </View>
+
+        {/* Stats Grid */}
+        <View style={styles.statsGrid}>
+          {stats.map((s) => (
+            <View key={s.label} style={styles.statCard}>
+              <Text style={styles.statValue}>{s.value}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Progress */}
+        <View style={styles.progressCard}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.progressLabel}>Kelengkapan Profil</Text>
+            <Text style={styles.progressPercent}>80%</Text>
+          </View>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: '80%' }]} />
+          </View>
+        </View>
+
+        {/* Menu Grid */}
+        <View style={styles.menuGrid}>
+          {menuItems.map((item) => (
+            <TouchableOpacity
+              key={item.label}
+              style={styles.menuCard}
+              onPress={() => router.push(item.route as any)}
+            >
+              <Ionicons name={item.icon as any} size={32} color={DARK} />
+              <Text style={styles.menuLabel}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+      </ScrollView>
+    </View>
   );
 }
 
+const mono = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
+
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#E8E6E1',
+  },
+  header: {
+    backgroundColor: DARK,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 52 : 16,
+    paddingBottom: 14,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  headerTitle: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 2,
+    fontFamily: mono,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  avatarSmall: {
+    width: 32,
+    height: 32,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 2,
+  },
+  scroll: {
+    padding: 12,
+    gap: 10,
+  },
+
+  // Welcome
+  welcomeCard: {
+    backgroundColor: DARK,
+    borderWidth: 2,
+    borderColor: '#1a1a1a',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  avatarBox: {
+    width: 80,
+    height: 80,
+    borderWidth: 2,
+    borderColor: ORANGE,
+    backgroundColor: '#3d5166',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomeText: {
+    flex: 1,
+  },
+  welcomeGreeting: {
+    color: '#ccc',
+    fontSize: 13,
+    fontFamily: mono,
+  },
+  welcomeName: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: mono,
+    marginTop: 2,
+  },
+  welcomeClass: {
+    color: ORANGE,
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: mono,
+    marginTop: 4,
+  },
+
+  // Stats
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#1a1a1a',
+    padding: 14,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: ORANGE,
+    fontFamily: mono,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: 1,
+    fontFamily: mono,
+    marginTop: 4,
+  },
+
+  // Progress
+  progressCard: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#1a1a1a',
+    padding: 14,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  progressLabel: {
+    fontSize: 12,
+    color: '#1a1a1a',
+    fontFamily: mono,
+  },
+  progressPercent: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: ORANGE,
+    fontFamily: mono,
+  },
+  progressTrack: {
+    height: 14,
+    backgroundColor: DARK,
+    borderRadius: 0,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: ORANGE,
+  },
+
+  // Menu
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  menuCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#1a1a1a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 28,
+    gap: 10,
+  },
+  menuLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#1a1a1a',
+    fontFamily: mono,
   },
 });

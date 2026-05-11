@@ -2,37 +2,71 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator
+  ActivityIndicator, Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function LoginScreen({ navigation }: any) {
+const ORANGE = '#E8581A';
+const DARK = '#2C3E50';
+const MONO = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
+
+// IP sesuai dengan konfigurasi Laravel --host
+const BASE_URL = 'http://172.16.0.68:8000/api';
+
+export default function LoginScreen() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const BASE_URL = 'http://172.16.0.73:8000';
-
   const handleLogin = async () => {
+    // Validasi dasar sebelum menembak API
+    if (!email || !password) {
+      Alert.alert('Peringatan', 'Email dan password wajib diisi!');
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      const response = await fetch(`${BASE_URL}/api/login`, {
+      // Menggunakan Fetch API sesuai standar LKPD
+      const response = await fetch(`${BASE_URL}/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
       });
+
       const result = await response.json();
+
       if (response.ok) {
-        // Simpan token, navigasi ke Home
-        console.log('Token:', result.token);
-        // navigation.replace('Home');
+        console.log('Login Berhasil, Token:', result.token);
+        
+        await AsyncStorage.setItem('userToken', result.token);
+        if (result.user) {
+          await AsyncStorage.setItem('userData', JSON.stringify(result.user));
+        }
+
+        Alert.alert('Sukses', 'Selamat datang kembali!');
+        router.replace('/(tabs)'); 
       } else {
-        alert(result.message || 'Login gagal');
+        // Jika login gagal (Status 401/422)
+        Alert.alert('Gagal Masuk', result.message || 'Email atau password salah.');
       }
     } catch (error) {
-      alert('Tidak dapat terhubung ke server');
+      console.error(error);
+      Alert.alert(
+        'Kesalahan Jaringan', 
+        'Tidak dapat terhubung ke server. Pastikan Laravel sudah running di host 172.16.0.73'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +82,7 @@ export default function LoginScreen({ navigation }: any) {
         {/* Header */}
         <View style={styles.header}>
           <Ionicons name="school" size={20} color="white" />
-          <Text style={styles.headerTitle}>MASUK</Text>
+          <Text style={styles.headerTitle}>AUTHENTICATION_GATE</Text>
         </View>
 
         {/* Body */}
@@ -56,7 +90,7 @@ export default function LoginScreen({ navigation }: any) {
 
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>EMAIL_ADDRESS</Text>
             <TextInput
               style={styles.input}
               placeholder="siswa@smkpesat.sch.id"
@@ -70,7 +104,7 @@ export default function LoginScreen({ navigation }: any) {
 
           {/* Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Kata Sandi</Text>
+            <Text style={styles.label}>PASSWORD</Text>
             <View style={styles.passwordWrapper}>
               <TextInput
                 style={[styles.input, { paddingRight: 44, flex: 1 }]}
@@ -85,7 +119,7 @@ export default function LoginScreen({ navigation }: any) {
                 onPress={() => setShowPassword(!showPassword)}
               >
                 <Ionicons
-                  name={showPassword ? 'eye' : 'eye-off'}
+                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                   size={20}
                   color="#888"
                 />
@@ -101,20 +135,21 @@ export default function LoginScreen({ navigation }: any) {
           {/* Tombol Masuk */}
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={() => router.push('/(tabs)')}
+            onPress={handleLogin}
             disabled={isLoading}
           >
-            {isLoading
-              ? <ActivityIndicator color="white" />
-              : <Text style={styles.buttonText}>MASUK</Text>
-            }
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.buttonText}>EXECUTE_LOGIN</Text>
+            )}
           </TouchableOpacity>
 
         </View>
       </View>
 
       {/* Footer */}
-      <Text style={styles.footer}>SISTEM PROFILING SISWA SMK PESAT</Text>
+      <Text style={styles.footer}>SISTEM PROFILING SISWA SMK PESAT v2.0</Text>
 
     </KeyboardAvoidingView>
   );
@@ -134,21 +169,29 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#1a1a1a',
     backgroundColor: 'white',
+    // Efek Brutalist Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 5,
   },
   header: {
-    backgroundColor: '#2C3E50',
+    backgroundColor: DARK,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 20,
     paddingVertical: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: '#1a1a1a',
   },
   headerTitle: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    fontFamily: MONO,
   },
   body: {
     padding: 20,
@@ -158,21 +201,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#1a1a1a',
     marginBottom: 6,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    fontFamily: MONO,
   },
   input: {
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#1a1a1a',
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 13,
     color: '#1a1a1a',
     backgroundColor: 'white',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    fontFamily: MONO,
   },
   passwordWrapper: {
     flexDirection: 'row',
@@ -184,33 +227,41 @@ const styles = StyleSheet.create({
     right: 12,
   },
   forgotText: {
-    color: '#E8581A',
-    fontSize: 12,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    color: ORANGE,
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: MONO,
+    textDecorationLine: 'underline',
   },
   button: {
-    backgroundColor: '#E8581A',
+    backgroundColor: ORANGE,
     borderWidth: 2,
     borderColor: '#1a1a1a',
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
+    // Brutalist Shadow untuk tombol
+    shadowColor: '#000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    backgroundColor: '#ccc',
+    opacity: 0.8,
   },
   buttonText: {
     color: 'white',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '900',
     letterSpacing: 2,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    fontFamily: MONO,
   },
   footer: {
-    marginTop: 20,
-    fontSize: 10,
-    letterSpacing: 3,
+    marginTop: 30,
+    fontSize: 9,
+    letterSpacing: 2,
     color: '#888',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    fontFamily: MONO,
+    textAlign: 'center',
   },
 });
